@@ -1,0 +1,14 @@
+services:
+  serapis:
+    build:
+      context: .
+      dockerfile: build/serapis/Dockerfile
+    volumes:
+      - .:/serapis
+    restart: always
+    networks:
+      app:
+        aliases:
+          - serapis
+networks:
+  app:
