@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: build/serapis/Dockerfile
+    ports:
+      - '2112:2112'
     volumes:
       - .:/serapis
     restart: always
@@ -10,5 +12,23 @@ services:
       app:
         aliases:
           - serapis
+  grafana:
+    image: 'grafana/grafana'
+    ports:
+      - '3000:3000'
+    networks:
+      app:
+        aliases:
+          - grafana
+  prometheus:
+    image: 'prom/prometheus'
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./build/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      app:
+        aliases:
+          - prometheus
 networks:
   app:
