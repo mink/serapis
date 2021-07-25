@@ -5,6 +5,7 @@ services:
       dockerfile: build/serapis/Dockerfile
     ports:
       - '2112:2112'
+      - '2096:2096'
     volumes:
       - .:/serapis
     restart: always

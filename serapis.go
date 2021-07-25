@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	"serapis/internal/pkg/metrics"
 	"serapis/internal/pkg/protocol"
 )
 
@@ -17,13 +17,8 @@ var upgrader = websocket.Upgrader{
 func main() {
 	fmt.Println("Serapis")
 
-	go metrics()
+	metrics.Start()
 	serve()
-}
-
-func metrics() {
-	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":2112", nil)
 }
 
 func serve() {
@@ -37,7 +32,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	defer conn.Close()
+	metrics.Gauges.Connections.Inc()
+
+	defer func() {
+		metrics.Gauges.Connections.Dec()
+		conn.Close()
+	}()
 
 	for {
 		_, data, err := conn.ReadMessage()
