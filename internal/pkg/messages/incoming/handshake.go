@@ -27,7 +27,7 @@ func (e *SecureLoginEvent) Handle(conn *websocket.Conn) {
 
 	// todo - authenticate
 
-	err := conn.WriteMessage(websocket.BinaryMessage, protocol.NewOutgoingPacket(outgoing.SecureLoginOKComposer).All())
+	err := conn.WriteMessage(websocket.BinaryMessage, outgoing.NewSecureLoginOKComposer())
 	if err != nil {
 		go conn.Close()
 	}

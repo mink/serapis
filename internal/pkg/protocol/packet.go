@@ -54,7 +54,7 @@ func (p Packet) Data() []byte {
 	return p.data
 }
 
-func (p Packet) All() []byte {
+func (p Packet) Bytes() []byte {
 	var bytes []byte
 
 	lengthBytes := make([]byte, 4)
