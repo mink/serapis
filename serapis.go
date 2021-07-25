@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 
+	"github.com/gorilla/websocket"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
 
 func main() {
 	fmt.Println("Serapis")
@@ -21,27 +25,24 @@ func metrics() {
 }
 
 func serve() {
-	listener, err := net.Listen("tcp", ":1337")
-	if err != nil {
-		panic(err)
-	}
-
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			panic(err)
-		}
-
-		go handle(conn)
-	}
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(":2096", nil)
 }
 
-func handle(conn net.Conn) {
-	buffer := make([]byte, 1024)
-	n, err := conn.Read(buffer)
+func handler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("%d bytes received: %s\n", n, buffer)
+	defer conn.Close()
+
+	for {
+		_, packet, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Printf("read err - %s\n", err)
+			break
+		}
+		fmt.Println(len(packet), "bytes received:", packet)
+	}
 }
