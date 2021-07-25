@@ -2,61 +2,12 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-
-	"github.com/gorilla/websocket"
-
-	"serapis/internal/pkg/messages/incoming"
 	"serapis/internal/pkg/metrics"
-	"serapis/internal/pkg/network"
-	"serapis/internal/pkg/protocol"
+	"serapis/internal/pkg/server"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true },
-}
-
 func main() {
-	fmt.Println("Serapis")
-
+	fmt.Println("  ______                           __        \n /   __/ ________________  ______ |__| _____\n \\___ \\_/ __ \\_  __ \\__  \\ \\____ \\|  |/  __/\n /     \\  ___/|  | \\// __ \\|  |_> >  |\\___ \\\n/____  /\\___  >__|  (____  /   __/|__/___   >\n     \\/     \\/           \\/|__|          \\/ \n")
 	metrics.Start()
-	serve()
-}
-
-func serve() {
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":2096", nil)
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		panic(err)
-	}
-	
-	conn := network.NewConnection(ws)
-
-	metrics.Gauges.Connections.Inc()
-
-	defer func() {
-		metrics.Gauges.Connections.Dec()
-		go conn.Close()
-	}()
-
-	for {
-		data, err := conn.Read()
-		if err != nil {
-			fmt.Println("Read error:", err)
-			break
-		}
-		packet := protocol.NewInboundPacket(data)
-		fmt.Println("Packet received:", fmt.Sprintf("{header: %d, length: %d, bytes: %d}", packet.Header(), packet.Length(), packet.Data()))
-
-		event := incoming.Events[int(packet.Header())]
-		if event != nil {
-			event(packet).Handle(conn)
-		} else {
-			fmt.Println("Packet", packet.Header(), "invalid")
-		}
-	}
+	server.Start()
 }
