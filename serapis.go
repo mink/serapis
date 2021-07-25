@@ -8,6 +8,7 @@ import (
 
 	"serapis/internal/pkg/messages/incoming"
 	"serapis/internal/pkg/metrics"
+	"serapis/internal/pkg/network"
 	"serapis/internal/pkg/protocol"
 )
 
@@ -28,10 +29,12 @@ func serve() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		panic(err)
 	}
+	
+	conn := network.NewConnection(ws)
 
 	metrics.Gauges.Connections.Inc()
 
@@ -41,7 +44,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	for {
-		_, data, err := conn.ReadMessage()
+		data, err := conn.Read()
 		if err != nil {
 			fmt.Println("Read error:", err)
 			break

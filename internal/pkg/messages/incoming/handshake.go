@@ -2,8 +2,7 @@ package incoming
 
 import (
 	"fmt"
-
-	"github.com/gorilla/websocket"
+	"serapis/internal/pkg/network"
 
 	"serapis/internal/pkg/messages/outgoing"
 	"serapis/internal/pkg/protocol"
@@ -14,7 +13,7 @@ type ReleaseVersionEvent struct {
 	client   string
 }
 
-func (e *ReleaseVersionEvent) Handle(conn *websocket.Conn) {
+func (e *ReleaseVersionEvent) Handle(conn *network.Connection) {
 	fmt.Printf("ReleaseVersionEvent {revision: %s, client: %s}\n", e.revision, e.client)
 }
 
@@ -22,12 +21,12 @@ type SecureLoginEvent struct {
 	sso  string
 }
 
-func (e *SecureLoginEvent) Handle(conn *websocket.Conn) {
+func (e *SecureLoginEvent) Handle(conn *network.Connection) {
 	fmt.Printf("SecureLoginEvent {sso: %s}\n", e.sso)
 
 	// todo - authenticate
 
-	err := conn.WriteMessage(websocket.BinaryMessage, outgoing.NewSecureLoginOKComposer())
+	err := conn.Write(outgoing.NewSecureLoginOKComposer())
 	if err != nil {
 		go conn.Close()
 	}
