@@ -37,7 +37,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		metrics.Gauges.Connections.Dec()
-		conn.Close()
+		go conn.Close()
 	}()
 
 	for {
@@ -46,12 +46,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Read error:", err)
 			break
 		}
-		packet := protocol.NewPacket(data)
+		packet := protocol.NewInboundPacket(data)
 		fmt.Println("Packet received:", fmt.Sprintf("{header: %d, length: %d, bytes: %d}", packet.Header(), packet.Length(), packet.Data()))
 
 		event := incoming.Events[int(packet.Header())]
 		if event != nil {
-			event(packet).Handle()
+			event(packet).Handle(conn)
 		} else {
 			fmt.Println("Packet", packet.Header(), "invalid")
 		}

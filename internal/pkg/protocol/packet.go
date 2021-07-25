@@ -4,15 +4,18 @@ import "encoding/binary"
 
 type Packet struct {
 	header uint16
-	length uint32
 	data   []byte
 }
 
-func NewPacket(data []byte) *Packet {
+func NewInboundPacket(data []byte) *Packet {
 	p := &Packet{data: data}
-	p.length = p.readLength()
+	p.readLength()
 	p.header = p.readHeader()
 	return p
+}
+
+func NewOutgoingPacket(header uint16) *Packet {
+	return &Packet{header: header}
 }
 
 func (p *Packet) pop(bytes int) {
@@ -44,9 +47,25 @@ func (p Packet) Header() uint16 {
 }
 
 func (p Packet) Length() uint32 {
-	return p.length
+	return uint32(len(p.Data()) + 2)
 }
 
 func (p Packet) Data() []byte {
 	return p.data
+}
+
+func (p Packet) All() []byte {
+	var bytes []byte
+
+	lengthBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(lengthBytes, p.Length())
+	bytes = append(bytes, lengthBytes...)
+
+	headerBytes := make([]byte, 2)
+	binary.BigEndian.PutUint16(headerBytes, p.header)
+	bytes = append(bytes, headerBytes...)
+
+	bytes = append(bytes, p.data...)
+
+	return bytes
 }
