@@ -6,6 +6,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"serapis/internal/pkg/protocol"
 )
 
 var upgrader = websocket.Upgrader{
@@ -38,11 +40,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	for {
-		_, packet, err := conn.ReadMessage()
+		_, data, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Printf("read err - %s\n", err)
+			fmt.Println("Read error:", err)
 			break
 		}
-		fmt.Println(len(packet), "bytes received:", packet)
+		packet := protocol.NewPacket(data)
+		fmt.Println("Packet received:", fmt.Sprintf("{header: %d, length: %d, bytes: %d}", packet.Header(), packet.Length(), packet.Data()))
 	}
 }
