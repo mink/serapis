@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
+	"serapis/internal/pkg/messages/incoming"
 	"serapis/internal/pkg/metrics"
 	"serapis/internal/pkg/protocol"
 )
@@ -47,5 +48,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 		packet := protocol.NewPacket(data)
 		fmt.Println("Packet received:", fmt.Sprintf("{header: %d, length: %d, bytes: %d}", packet.Header(), packet.Length(), packet.Data()))
+
+		event := incoming.Events[int(packet.Header())]
+		if event != nil {
+			event(packet).Handle()
+		} else {
+			fmt.Println("Packet", packet.Header(), "invalid")
+		}
 	}
 }
