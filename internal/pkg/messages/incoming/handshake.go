@@ -25,8 +25,7 @@ func (e *SecureLoginEvent) Handle(conn *network.Connection) {
 	fmt.Printf("SecureLoginEvent {sso: %s}\n", e.sso)
 
 	// todo - authenticate
-
-	err := conn.Write(outgoing.NewSecureLoginOKComposer())
+	err := conn.Write(&outgoing.SecureLoginOKComposer{})
 	if err != nil {
 		go conn.Close()
 	}

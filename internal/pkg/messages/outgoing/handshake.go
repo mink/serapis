@@ -7,9 +7,5 @@ type SecureLoginOKComposer struct {
 }
 
 func (c *SecureLoginOKComposer) Bytes() []byte {
-	return protocol.NewOutgoingPacket(c.header).Bytes()
-}
-
-func NewSecureLoginOKComposer() *SecureLoginOKComposer {
-	return &SecureLoginOKComposer{header: 2491}
+	return protocol.NewOutgoingPacket(2491).Bytes()
 }
