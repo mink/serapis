@@ -2,6 +2,7 @@ package incoming
 
 import (
 	"fmt"
+	"serapis/internal/pkg/game"
 	"serapis/internal/pkg/network"
 
 	"serapis/internal/pkg/messages/outgoing"
@@ -24,7 +25,20 @@ type SecureLoginEvent struct {
 func (e *SecureLoginEvent) Handle(conn *network.Connection) {
 	fmt.Printf("SecureLoginEvent {sso: %s}\n", e.sso)
 
-	// todo - authenticate
+	var user *game.User
+
+	for i := range game.Users {
+		if game.Users[i].SSO == e.sso {
+			user = game.Users[i]
+		}
+	}
+
+	if user == nil {
+		go conn.Close()
+		return
+	}
+
+	conn.User = user
 	err := conn.Write(&outgoing.SecureLoginOKComposer{})
 	if err != nil {
 		go conn.Close()

@@ -3,10 +3,12 @@ package network
 import (
 	"github.com/gorilla/websocket"
 
+	"serapis/internal/pkg/game"
 	"serapis/internal/pkg/messages/outgoing"
 )
 
 type Connection struct {
+	User *game.User
 	ws *websocket.Conn
 }
 
